@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit &amp; Buget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f5f7;
+    --card:#ffffff;
+    --text:#1d1d1f;
+    --text-2:#6e6e73;
+    --border:rgba(0,0,0,0.07);
+    --field-bg:#f0f0f2;
+    --blue:#0071e3;
+    --blue-soft:rgba(0,113,227,0.1);
+    --green:#2fb457;
+    --green-soft:rgba(47,180,87,0.12);
+    --red:#ff3b30;
+    --red-soft:rgba(255,59,48,0.1);
+    --orange:#ff9500;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--blue-soft);color:var(--blue);}
+
+  .nav-bar{
+    position:sticky;top:0;z-index:60;
+    background:rgba(245,245,247,0.86);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+    padding:14px 20px;
+    display:flex;justify-content:center;
+  }
+  .tab-nav{
+    display:inline-flex;background:var(--field-bg);border-radius:11px;padding:3px;gap:2px;
+  }
+  .tab-btn{
+    padding:8px 22px;border-radius:8px;border:none;background:transparent;
+    font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;color:var(--text-2);
+    cursor:pointer;transition:background .18s ease,color .18s ease,box-shadow .18s ease;
+  }
+  .tab-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:44px 20px 90px;}
+  @media(min-width:900px){.wrap{padding:56px 40px 110px;}}
+
+  header.hero{margin-bottom:34px;text-align:left;}
+  .eyebrow{font-size:13.5px;font-weight:600;letter-spacing:0.01em;margin:0 0 8px;}
+  #tab-credit .eyebrow{color:var(--blue);}
+  #tab-buget .eyebrow{color:var(--green);}
+  h1{
+    font-family:'Inter',sans-serif;font-weight:800;
+    font-size:clamp(30px,4.4vw,42px);margin:0 0 10px;letter-spacing:-0.02em;line-height:1.08;
+    color:var(--text);
+  }
+  header.hero p{color:var(--text-2);margin:0;font-size:15px;max-width:58ch;line-height:1.55;}
+
+  .summary-strip{
+    background:var(--card);border-radius:16px;padding:2px 20px;margin:24px 0 32px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 10px rgba(0,0,0,0.035);
+  }
+  .summary-item{
+    display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    padding:13px 0;border-bottom:1px solid var(--border);
+  }
+  .summary-item:last-child{border-bottom:none;}
+  .summary-label{font-size:13px;color:var(--text-2);margin:0;font-weight:500;}
+  .summary-figure{font-size:17px;font-weight:700;margin:0;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;white-space:nowrap;}
+  .summary-figure.blue{color:var(--blue);}
+  .summary-figure.green{color:var(--green);}
+  .summary-figure.red{color:var(--red);}
+  @media(min-width:680px){
+    .summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:none;box-shadow:none;padding:0;margin:28px 0 32px;}
+    .summary-item{
+      display:block;background:var(--card);border-radius:16px;padding:18px 20px;border-bottom:none;
+      box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 10px rgba(0,0,0,0.035);
+      transition:box-shadow .2s ease;
+    }
+    .summary-label{margin:0 0 8px;font-size:12.5px;}
+    .summary-figure{font-size:22px;white-space:normal;}
+  }
+  @media(hover:hover) and (min-width:680px){.summary-item:hover{box-shadow:0 2px 4px rgba(0,0,0,0.05), 0 6px 18px rgba(0,0,0,0.06);}}
+
+  main{display:grid;grid-template-columns:1fr;gap:24px;}
+  @media(min-width:880px){main{grid-template-columns:400px 1fr;align-items:start;}}
+  @media(min-width:1100px){main{grid-template-columns:420px 1fr;gap:28px;}}
+
+  .card{
+    background:var(--card);border-radius:18px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 14px rgba(0,0,0,0.035);
+    overflow:hidden;
+    transition:box-shadow .2s ease, transform .2s ease;
+  }
+  @media(hover:hover){.card:hover{box-shadow:0 2px 4px rgba(0,0,0,0.05), 0 6px 22px rgba(0,0,0,0.06);}}
+  .card-head{font-size:13px;font-weight:600;color:var(--text-2);padding:18px 24px 0;}
+  .card-body{padding:16px 24px 24px;}
+
+  .tag{font-size:12px;font-weight:700;letter-spacing:0.02em;color:var(--text-2);margin:24px 0 6px;text-transform:uppercase;}
+  .field:first-child .tag{margin-top:0;}
+
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:14px;color:var(--text);margin-bottom:6px;font-weight:500;
+  }
+  .field label .val{font-size:13.5px;color:var(--text-2);font-weight:500;font-variant-numeric:tabular-nums;}
+  .field input[type="number"]{
+    width:100%;font-family:'Inter',sans-serif;font-size:16px;font-weight:500;color:var(--text);
+    padding:10px 12px;border:1px solid transparent;background:var(--field-bg);border-radius:10px;
+  }
+  .field input[type="number"]:focus{outline:none;background:#fff;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft);}
+  .field .note{margin-top:6px;font-size:12px;color:var(--text-2);line-height:1.45;}
+  .field input[type="range"]{
+    -webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--field-bg);margin-top:10px;
+  }
+  #tab-buget input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;cursor:pointer;
+    box-shadow:0 1px 4px rgba(0,0,0,0.25);border:none;
+  }
+  #tab-buget input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.25);border:none;}
+
+  .preset-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .preset-btn{
+    font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:16px;
+    background:var(--field-bg);border:none;color:var(--text-2);cursor:pointer;transition:background .15s ease,color .15s ease;
+  }
+  .preset-btn:hover{color:var(--text);}
+  @media(hover:hover){.preset-btn:hover{background:#e4e4e8;}}
+  #tab-credit .preset-btn.active{background:var(--blue);color:#fff;}
+  #tab-buget .preset-btn.active{background:var(--green);color:#fff;}
+
+  .result-hero{
+    background:var(--card);border-radius:18px;padding:30px 26px;text-align:center;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 14px rgba(0,0,0,0.035);
+  }
+  .result-hero .label{font-size:13.5px;color:var(--text-2);margin:0 0 8px;font-weight:500;}
+  .result-hero .figure{font-size:clamp(30px,5.4vw,44px);font-weight:800;line-height:1;margin:0 0 8px;color:var(--blue);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+  .result-hero .sub{font-size:13px;color:var(--text-2);}
+
+  .grid-results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+  @media(max-width:520px){.grid-results{grid-template-columns:1fr;}}
+  .stat{background:var(--card);border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 10px rgba(0,0,0,0.035);transition:box-shadow .2s ease;}
+  @media(hover:hover){.stat:hover{box-shadow:0 2px 4px rgba(0,0,0,0.05), 0 6px 18px rgba(0,0,0,0.06);}}
+  .stat .label{font-size:12.5px;color:var(--text-2);margin:0 0 7px;font-weight:500;}
+  .stat .figure{font-size:19px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;}
+  .stat .figure.red{color:var(--red);}
+  .stat .figure.blue{color:var(--blue);}
+  .stat .note{font-size:12px;color:var(--text-2);margin-top:5px;}
+
+  .timeline{margin-top:14px;background:var(--card);border-radius:18px;padding:20px 22px;box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 14px rgba(0,0,0,0.035);}
+  .timeline-head{font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:14px;}
+  .bar-track{position:relative;height:14px;border-radius:7px;overflow:hidden;background:var(--field-bg);display:flex;}
+  .bar-fixed,.bar-var{height:100%;}
+  .bar-fixed{background:var(--blue);}
+  .bar-var{background:var(--orange);}
+  .bar-labels{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-top:10px;}
+  .bar-labels b{color:var(--text);font-weight:600;}
+
+  .note-block{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+  .note-block strong{color:var(--text);}
+
+  footer.page-footer{
+    max-width:920px;margin:8px auto 50px;padding:16px 20px 0;
+    font-size:12px;color:var(--text-2);border-top:1px solid var(--border);
+  }
+
+  .ledger{background:var(--card);border-radius:18px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 14px rgba(0,0,0,0.035);transition:box-shadow .2s ease;}
+  @media(hover:hover){.ledger:hover{box-shadow:0 2px 4px rgba(0,0,0,0.05), 0 6px 18px rgba(0,0,0,0.06);}}
+  .ledger-title{font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:16px;}
+  .row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .row:last-child{border-bottom:none;}
+  .row label{font-size:14.5px;color:var(--text);font-weight:500;}
+  .row .sub{font-size:12px;color:var(--text-2);display:block;margin-top:2px;font-weight:400;}
+  .num-input{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:16px;color:var(--text);
+    background:var(--field-bg);border:1px solid transparent;border-radius:10px;
+    padding:8px 12px;width:112px;text-align:right;
+  }
+  .num-input:focus{outline:none;background:#fff;border-color:var(--green);box-shadow:0 0 0 3px var(--green-soft);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr;}}
+
+  .buget-grid{display:grid;grid-template-columns:1fr;gap:20px;}
+  @media(min-width:960px){
+    .buget-grid{grid-template-columns:1fr 380px;gap:24px;align-items:start;}
+    .buget-grid .result-col{position:sticky;top:96px;}
+  }
+  .item-row{display:grid;grid-template-columns:1fr 96px 24px;gap:8px;align-items:center;padding:7px 0;}
+  .item-row input[type=text]{background:transparent;border:none;color:var(--text);font-size:13.5px;padding:4px 0;font-family:'Inter',sans-serif;}
+  .item-row input[type=text]:focus{outline:none;}
+  .item-row input[type=number]{
+    font-family:'Inter',sans-serif;font-size:13.5px;background:var(--field-bg);
+    border:1px solid transparent;border-radius:8px;color:var(--text);padding:6px 8px;width:100%;text-align:right;
+  }
+  .item-row input[type=number]:focus{outline:none;border-color:var(--green);}
+  .del-btn{background:none;border:none;color:var(--text-2);cursor:pointer;font-size:16px;line-height:1;padding:4px;}
+  .del-btn:hover{color:var(--red);}
+  .add-btn{
+    font-size:12.5px;font-weight:500;background:var(--field-bg);border:none;
+    color:var(--green);border-radius:10px;padding:9px 10px;cursor:pointer;margin-top:8px;width:100%;
+    transition:background .15s ease;
+  }
+  .add-btn:hover{background:var(--green-soft);}
+  .cat-total{
+    display:flex;justify-content:space-between;font-size:13px;
+    color:var(--text-2);padding-top:12px;margin-top:8px;border-top:1px solid var(--border);
+  }
+  .cat-total b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;}
+
+  .bar{height:12px;border-radius:6px;overflow:hidden;display:flex;margin:18px 0 12px;background:var(--field-bg);}
+  .bar div{height:100%;}
+  .seg-rata{background:#8e8e93;}
+  .seg-fix{background:var(--orange);}
+  .seg-var{background:#af52de;}
+  .seg-inv{background:var(--green);}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--text-2);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  .breakdown{margin:18px 0 4px;}
+  .bd-row{
+    display:grid;grid-template-columns:12px 1fr auto auto;align-items:center;gap:10px;
+    padding:9px 0;border-bottom:1px solid var(--border);font-size:13.5px;
+  }
+  .bd-row:last-child{border-bottom:none;}
+  .bd-row .dot{width:8px;height:8px;border-radius:50%;}
+  .bd-row .bd-name{color:var(--text);}
+  .bd-row .bd-amount{font-weight:600;color:var(--text);text-align:right;min-width:78px;font-variant-numeric:tabular-nums;}
+  .bd-row .bd-pct{font-size:12px;color:var(--text-2);text-align:right;min-width:44px;font-variant-numeric:tabular-nums;}
+
+  .balance-line{
+    font-size:28px;font-weight:800;display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;letter-spacing:-0.02em;
+  }
+  .balance-line .label{font-size:12.5px;letter-spacing:0;color:var(--text-2);font-weight:500;}
+  .balance-line .val{font-variant-numeric:tabular-nums;}
+  .balance-line.negative .val{color:var(--red);}
+  .balance-line.positive .val{color:var(--green);}
+
+  .dti{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--text-2);}
+  .dti-badge{font-weight:700;font-size:13px;padding:5px 12px;border-radius:20px;font-variant-numeric:tabular-nums;}
+  .dti-ok{background:var(--green-soft);color:var(--green);}
+  .dti-warn{background:rgba(255,149,0,0.14);color:var(--orange);}
+  .dti-bad{background:var(--red-soft);color:var(--red);}
+
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="credit">Credit</button>
+    <button class="tab-btn" data-tab="buget">Buget</button>
+  </div>
+</div>
+
+<!-- ===================== TAB: FIȘĂ DE CREDIT ===================== -->
+<div id="tab-credit" class="tab-panel active">
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Simulator ipotecar</p>
+  <h1>Fișă de credit</h1>
+  <p>Modelează costul real al unui credit ipotecar — de la avans și comisioane, la rata din perioada fixă și estimarea celei variabile.</p>
+</header>
+
+<div class="summary-strip">
+  <div class="summary-item">
+    <p class="summary-label">Rată în perioada fixă</p>
+    <p class="summary-figure blue" id="s_ratafix">— RON</p>
+  </div>
+  <div class="summary-item">
+    <p class="summary-label">Rată după perioada fixă</p>
+    <p class="summary-figure red" id="s_ratavar">— RON</p>
+  </div>
+  <div class="summary-item">
+    <p class="summary-label">Fonduri proprii necesare</p>
+    <p class="summary-figure" id="s_avans">— €</p>
+  </div>
+</div>
+
+<main>
+  <div class="card">
+    <div class="card-head">Parametri</div>
+    <div class="card-body">
+
+      <div class="field">
+        <div class="tag">Imobil</div>
+        <label>Preț apartament <span class="val" id="v_price">95 000 €</span></label>
+        <input type="number" id="price" value="95000" step="500" min="10000">
+        <div class="preset-row">
+          <button type="button" class="preset-btn" data-price="90000">90.000 €</button>
+          <button type="button" class="preset-btn" data-price="95000">95.000 €</button>
+          <button type="button" class="preset-btn" data-price="100000">100.000 €</button>
+          <button type="button" class="preset-btn" data-price="105000">105.000 €</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Curs EUR/RON <span class="val" id="v_fx">5,30</span></label>
+        <input type="number" id="fx" value="5.3" step="0.01" min="3" max="7">
+      </div>
+
+      <div class="field">
+        <label>Avans minim <span class="val" id="v_avans">15 %</span></label>
+        <input type="number" id="avans" value="15" step="1" min="0" max="50">
+      </div>
+
+      <div class="field">
+        <div class="tag">Credit</div>
+        <label>Perioadă credit <span class="val" id="v_ani">25 ani</span></label>
+        <input type="number" id="ani" value="25" step="1" min="5" max="30">
+      </div>
+
+      <div class="field">
+        <label>Perioadă dobândă fixă <span class="val" id="v_anifix">2 ani</span></label>
+        <input type="number" id="anifix" value="2" step="1" min="1" max="10">
+      </div>
+
+      <div class="field">
+        <label>Dobândă fixă <span class="val" id="v_dfix">4,69 %</span></label>
+        <input type="number" id="dfix" value="4.69" step="0.01" min="0" max="15">
+      </div>
+
+      <div class="field">
+        <label>Dobândă standard (după fix) <span class="val" id="v_dstd">7,83 %</span></label>
+        <input type="number" id="dstd" value="7.83" step="0.01" min="0" max="15">
+        <div class="note">formulă bancă: IRCC + marjă 2,25%</div>
+      </div>
+
+      <div class="field">
+        <div class="tag">Costuri &amp; asigurări</div>
+        <label>Comision de analiză <span class="val" id="v_comanaliza">900 RON</span></label>
+        <input type="number" id="comanaliza" value="900" step="10" min="0">
+      </div>
+
+      <div class="field">
+        <label>Comision unic <span class="val" id="v_comunic">50 €</span></label>
+        <input type="number" id="comunic" value="50" step="5" min="0">
+      </div>
+
+      <div class="field">
+        <label>Asigurare viață (lunar, din sold) <span class="val" id="v_asig">0,03 %</span></label>
+        <input type="number" id="asig" value="0.03" step="0.01" min="0" max="1">
+      </div>
+
+      <div class="field">
+        <label>Asigurare imobil (anuală) <span class="val" id="v_asigim">130 RON</span></label>
+        <input type="number" id="asigim" value="130" step="10" min="0">
+      </div>
+
+      <div class="field">
+        <div class="tag">Costuri tranzacție</div>
+        <label>Costuri notariale <span class="val" id="v_notar">2,00 %</span></label>
+        <input type="number" id="notar" value="2" step="0.1" min="0" max="10">
+        <div class="note">% din prețul apartamentului — autentificare, taxe, extrase CF</div>
+      </div>
+
+      <div class="field">
+        <label>Comision agenție imobiliară <span class="val" id="v_agentie">2,00 %</span></label>
+        <input type="number" id="agentie" value="2" step="0.1" min="0" max="10">
+        <div class="note">% din prețul apartamentului — completează dacă tu, cumpărătorul, plătești comisionul</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div>
+    <div class="result-hero">
+      <p class="label">Sumă necesară din surse proprii</p>
+      <p class="figure" id="r_avans_eur">14 250 €</p>
+      <p class="sub" id="r_avans_ron">≈ 70 965 RON, la cursul introdus</p>
+      <p class="sub" id="r_avans_breakdown" style="margin-top:6px;">avans + costuri notariale + comision agenție</p>
+    </div>
+
+    <div class="grid-results">
+      <div class="stat">
+        <p class="label">Suma creditată</p>
+        <p class="figure blue" id="r_credit">80 750 €</p>
+        <p class="note" id="r_credit_ron">398 913 RON</p>
+      </div>
+      <div class="stat">
+        <p class="label">Venit minim necesar (est.)</p>
+        <p class="figure" id="r_venit">— RON</p>
+        <p class="note">40% grad de îndatorare</p>
+      </div>
+      <div class="stat">
+        <p class="label">Rată în perioada fixă</p>
+        <p class="figure blue" id="r_ratafix">— RON</p>
+        <p class="note" id="r_ratafix_note">credit + asigurare viață</p>
+      </div>
+      <div class="stat">
+        <p class="label">Rată după perioada fixă</p>
+        <p class="figure red" id="r_ratavar">— RON</p>
+        <p class="note" id="r_ratavar_note">estimat, sold recalculat</p>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-head">Cronologie rate</div>
+      <div class="bar-track">
+        <div class="bar-fixed" id="bar_fix"></div>
+        <div class="bar-var" id="bar_var"></div>
+      </div>
+      <div class="bar-labels">
+        <span id="lbl_fix_rate"><b>Fix</b> · 4,69% · 2 549 RON/lună</span>
+        <span id="lbl_var_rate"><b>Variabil</b> · 7,83% · 3 339 RON/lună</span>
+      </div>
+      <div class="note-block">
+        <strong>Cost total estimat pe durata creditului:</strong> <span id="r_costtotal">—</span>.
+        Include dobânda plătită plus comisionul de analiză și comisionul unic. Rata după perioada fixă e o
+        <strong>estimare</strong> — dobânda standard e variabilă (IRCC + marjă), deci suma reală depinde de
+        evoluția IRCC peste orizontul perioadei fixe.
+      </div>
+    </div>
+  </div>
+</main>
+
+</div>
+</div>
+
+<!-- ===================== TAB: SIMULATOR BUGET ===================== -->
+<div id="tab-buget" class="tab-panel">
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Simulator financiar personal</p>
+    <h1>Dinamica bugetului tău</h1>
+    <p>Ajustează venitul, rata și cheltuielile ca să vezi în timp real cât rămâne pentru investiții. Gândit pentru costul vieții din Cluj-Napoca.</p>
+  </header>
+
+  <div class="buget-grid">
+  <div class="left-col">
+
+  <div class="ledger">
+    <div class="ledger-title">Venit &amp; credit</div>
+
+    <div class="row">
+      <div>
+        <label>Venit net lunar</label>
+        <span class="sub">salariu, trading, sau ambele combinate</span>
+      </div>
+      <input type="number" class="num-input" id="income" value="7000" step="100">
+    </div>
+    <input type="range" id="incomeSlider" min="1500" max="20000" step="50" value="7000">
+
+    <div class="row" style="margin-top:14px;">
+      <div>
+        <label>Rată lunară (credit / chirie)</label>
+        <span class="sub">ipotecar, chirie sau alt credit fix</span>
+      </div>
+      <input type="number" class="num-input" id="rate" value="2700" step="50">
+    </div>
+    <input type="range" id="rateSlider" min="0" max="8000" step="50" value="2700">
+  </div>
+
+  <div class="grid2">
+    <div class="ledger">
+      <div class="ledger-title">Cheltuieli fixe</div>
+      <div id="fixedList"></div>
+      <button class="add-btn" id="addFixed">+ adaugă cheltuială fixă</button>
+      <div class="cat-total"><span>Total fixe</span><b id="fixedTotal">0 lei</b></div>
+    </div>
+
+    <div class="ledger">
+      <div class="ledger-title">Cheltuieli variabile</div>
+      <div id="varList"></div>
+      <button class="add-btn" id="addVar">+ adaugă cheltuială variabilă</button>
+      <div class="cat-total"><span>Total variabile</span><b id="varTotal">0 lei</b></div>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="result-col">
+  <div class="ledger">
+    <div class="ledger-title">Rezultat</div>
+
+    <div class="bar" id="allocBar"></div>
+    <div class="legend">
+      <span><i class="dot seg-rata"></i>Rată</span>
+      <span><i class="dot seg-fix"></i>Fixe</span>
+      <span><i class="dot seg-var"></i>Variabile</span>
+      <span><i class="dot seg-inv"></i>Rămas pt. investiții</span>
+    </div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div class="balance-line" id="balanceLine">
+      <span class="label">Disponibil pentru investiții / economii</span>
+      <span class="val" id="balanceValue">0 lei</span>
+    </div>
+
+    <div class="dti">
+      <span>Grad de îndatorare (rată / venit)</span>
+      <span class="dti-badge" id="dtiBadge">0%</span>
+    </div>
+
+    <div class="presets">
+      <button class="preset-btn" data-preset="default">Scenariul tău (7000 / 2700)</button>
+      <button class="preset-btn" data-preset="tight">Venit redus (5500 / 2700)</button>
+      <button class="preset-btn" data-preset="growth">Venit în creștere (9000 / 2700)</button>
+      <button class="preset-btn" data-preset="biggerloan">Credit mai mare (7000 / 3500)</button>
+    </div>
+  </div>
+  </div>
+
+  </div>
+
+  <footer class="page-footer">
+    toate valorile sunt estimări orientative, nu constituie consultanță financiară
+  </footer>
+</div>
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function fmt(n, dec=0){
+  return Number(n).toLocaleString('ro-RO', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+
+function annuityPayment(P, rMonthly, nMonths){
+  if(rMonthly === 0) return P / nMonths;
+  return P * rMonthly / (1 - Math.pow(1+rMonthly, -nMonths));
+}
+
+function remainingBalance(P, rMonthly, M, k){
+  let bal = P;
+  for(let i=0;i<k;i++){
+    const interest = bal * rMonthly;
+    const principal = M - interest;
+    bal -= principal;
+  }
+  return bal;
+}
+
+const ids = ['price','fx','avans','ani','anifix','dfix','dstd','comanaliza','comunic','asig','asigim','notar','agentie'];
+const inputs = {};
+ids.forEach(id => { inputs[id] = document.getElementById(id); });
+
+ids.forEach(id => {
+  document.getElementById(id).addEventListener('input', calculate);
+});
+
+const presetButtons = document.querySelectorAll('#tab-credit .preset-btn');
+function syncPresetActive(){
+  const current = String(parseInt(inputs.price.value) || 0);
+  presetButtons.forEach(b => b.classList.toggle('active', b.dataset.price === current));
+}
+presetButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    inputs.price.value = btn.dataset.price;
+    syncPresetActive();
+    calculate();
+  });
+});
+inputs.price.addEventListener('input', syncPresetActive);
+syncPresetActive();
+
+function calculate(){
+  const priceEUR = parseFloat(inputs.price.value) || 0;
+  const fx = parseFloat(inputs.fx.value) || 1;
+  const avansPct = parseFloat(inputs.avans.value) || 0;
+  const ani = parseInt(inputs.ani.value) || 25;
+  const aniFix = Math.min(parseInt(inputs.anifix.value) || 2, ani);
+  const dFix = (parseFloat(inputs.dfix.value) || 0) / 100;
+  const dStd = (parseFloat(inputs.dstd.value) || 0) / 100;
+  const comAnaliza = parseFloat(inputs.comanaliza.value) || 0;
+  const comUnicEUR = parseFloat(inputs.comunic.value) || 0;
+  const asigPct = (parseFloat(inputs.asig.value) || 0) / 100;
+  const asigImobilAn = parseFloat(inputs.asigim.value) || 0;
+  const notarPct = parseFloat(inputs.notar.value) || 0;
+  const agentiePct = parseFloat(inputs.agentie.value) || 0;
+
+  document.getElementById('v_price').textContent = fmt(priceEUR) + ' €';
+  document.getElementById('v_fx').textContent = fmt(fx, 2);
+  document.getElementById('v_avans').textContent = fmt(avansPct, 0) + ' %';
+  document.getElementById('v_ani').textContent = ani + ' ani';
+  document.getElementById('v_anifix').textContent = aniFix + ' ani';
+  document.getElementById('v_dfix').textContent = fmt(dFix*100, 2) + ' %';
+  document.getElementById('v_dstd').textContent = fmt(dStd*100, 2) + ' %';
+  document.getElementById('v_comanaliza').textContent = fmt(comAnaliza) + ' RON';
+  document.getElementById('v_comunic').textContent = fmt(comUnicEUR) + ' €';
+  document.getElementById('v_asig').textContent = fmt(asigPct*100, 2) + ' %';
+  document.getElementById('v_asigim').textContent = fmt(asigImobilAn) + ' RON';
+  document.getElementById('v_notar').textContent = fmt(notarPct, 2) + ' %';
+  document.getElementById('v_agentie').textContent = fmt(agentiePct, 2) + ' %';
+
+  const avansEUR = priceEUR * (avansPct/100);
+  const creditEUR = priceEUR - avansEUR;
+  const creditRON = creditEUR * fx;
+
+  const notarEUR = priceEUR * (notarPct/100);
+  const agentieEUR = priceEUR * (agentiePct/100);
+  const fonduriProprii_EUR = avansEUR + notarEUR + agentieEUR;
+  const fonduriProprii_RON = fonduriProprii_EUR * fx;
+
+  document.getElementById('r_avans_eur').textContent = fmt(fonduriProprii_EUR) + ' €';
+  document.getElementById('r_avans_ron').textContent = '≈ ' + fmt(fonduriProprii_RON) + ' RON, la cursul introdus';
+  document.getElementById('r_avans_breakdown').textContent = 'avans ' + fmt(avansEUR) + ' € + notariale ' + fmt(notarEUR) + ' € + agenție ' + fmt(agentieEUR) + ' €';
+  document.getElementById('r_credit').textContent = fmt(creditEUR) + ' €';
+  document.getElementById('r_credit_ron').textContent = fmt(creditRON) + ' RON';
+  document.getElementById('s_avans').textContent = fmt(fonduriProprii_EUR) + ' €';
+
+  const nTotal = ani * 12;
+  const kFix = aniFix * 12;
+  const nRest = Math.max(nTotal - kFix, 1);
+
+  const rFixMonthly = dFix / 12;
+  const rStdMonthly = dStd / 12;
+
+  const M_fix_credit = annuityPayment(creditRON, rFixMonthly, nTotal);
+  const balAfterFix = kFix >= nTotal ? 0 : remainingBalance(creditRON, rFixMonthly, M_fix_credit, kFix);
+  const M_var_credit = kFix >= nTotal ? 0 : annuityPayment(balAfterFix, rStdMonthly, nRest);
+
+  const insurance_fix = creditRON * asigPct;
+  const insurance_var = balAfterFix * asigPct;
+  const asigImobilLunar = asigImobilAn / 12;
+
+  const rataFixTotal = M_fix_credit + insurance_fix + asigImobilLunar;
+  const rataVarTotal = kFix >= nTotal ? 0 : (M_var_credit + insurance_var + asigImobilLunar);
+
+  document.getElementById('r_ratafix').textContent = fmt(rataFixTotal) + ' RON';
+  document.getElementById('r_ratafix_note').textContent = 'credit ' + fmt(M_fix_credit) + ' + asigurări ' + fmt(insurance_fix + asigImobilLunar);
+  document.getElementById('s_ratafix').textContent = fmt(rataFixTotal) + ' RON';
+
+  if(kFix >= nTotal){
+    document.getElementById('r_ratavar').textContent = '— (fix acoperă tot creditul)';
+    document.getElementById('r_ratavar_note').textContent = '';
+    document.getElementById('s_ratavar').textContent = '—';
+  } else {
+    document.getElementById('r_ratavar').textContent = fmt(rataVarTotal) + ' RON';
+    document.getElementById('r_ratavar_note').textContent = 'sold rămas ' + fmt(balAfterFix) + ' RON după ' + aniFix + ' ani';
+    document.getElementById('s_ratavar').textContent = fmt(rataVarTotal) + ' RON';
+  }
+
+  const venitMin = rataFixTotal / 0.40;
+  document.getElementById('r_venit').textContent = fmt(venitMin) + ' RON';
+
+  let totalPlatit = 0;
+  const schedule = [];
+  {
+    let bal = creditRON;
+    for(let i=0;i<kFix && i<nTotal;i++){
+      const insMonth = bal * asigPct;
+      const interest = bal * rFixMonthly;
+      totalPlatit += M_fix_credit;
+      schedule.push(M_fix_credit + insMonth + asigImobilLunar);
+      bal -= (M_fix_credit - interest);
+    }
+    for(let i=0;i<nRest && (kFix+i)<nTotal;i++){
+      const insMonth = bal * asigPct;
+      const interest = bal * rStdMonthly;
+      totalPlatit += M_var_credit;
+      schedule.push(M_var_credit + insMonth + asigImobilLunar);
+      bal -= (M_var_credit - interest);
+    }
+  }
+  const costuriAcordare = comAnaliza + comUnicEUR * fx;
+  const costTotal = totalPlatit + costuriAcordare;
+  document.getElementById('r_costtotal').textContent = fmt(costTotal) + ' RON (rambursat) — dobândă+comisioane peste creditul de ' + fmt(creditRON) + ' RON';
+
+  const fixShare = Math.min(kFix, nTotal) / nTotal * 100;
+  const varShare = 100 - fixShare;
+  const barFix = document.getElementById('bar_fix');
+  const barVar = document.getElementById('bar_var');
+  barFix.style.width = fixShare + '%';
+  barVar.style.width = varShare + '%';
+
+  document.getElementById('lbl_fix_rate').innerHTML = '<b>Fix</b> · ' + fmt(dFix*100,2) + '% · ' + fmt(rataFixTotal) + ' RON/lună';
+  document.getElementById('lbl_var_rate').innerHTML = kFix >= nTotal ? '' : ('<b>Variabil</b> · ' + fmt(dStd*100,2) + '% · ' + fmt(rataVarTotal) + ' RON/lună (est.)');
+}
+
+calculate();
+
+const state = {
+  income: 7000,
+  rate: 2700,
+  fixed: [
+    {name:"Întreținere asociație", amount:200},
+    {name:"Curent", amount:200},
+    {name:"Gaz / încălzire", amount:220},
+    {name:"Internet + telefon", amount:120},
+    {name:"Asigurare locuință", amount:30},
+  ],
+  variable: [
+    {name:"Mâncare", amount:1350},
+    {name:"Transport", amount:220},
+    {name:"Personal / farmacie", amount:350},
+    {name:"Ieșiri / divertisment", amount:250},
+  ]
+};
+
+const presets = {
+  default: {income:7000, rate:2700},
+  tight: {income:5500, rate:2700},
+  growth: {income:9000, rate:2700},
+  biggerloan: {income:7000, rate:3500},
+};
+
+function fmtLei(n){
+  return Math.round(n).toLocaleString('ro-RO') + " lei";
+}
+
+function renderList(containerId, arr, onChange){
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  arr.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <input type="text" value="${item.name}" data-idx="${idx}" class="name-input">
+      <input type="number" value="${item.amount}" data-idx="${idx}" class="amount-input" step="10">
+      <button class="del-btn" data-idx="${idx}">×</button>
+    `;
+    el.appendChild(row);
+  });
+  el.querySelectorAll('.name-input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      arr[+e.target.dataset.idx].name = e.target.value;
+    });
+  });
+  el.querySelectorAll('.amount-input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      arr[+e.target.dataset.idx].amount = parseFloat(e.target.value) || 0;
+      onChange();
+    });
+  });
+  el.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      arr.splice(+e.target.dataset.idx, 1);
+      renderList(containerId, arr, onChange);
+      onChange();
+    });
+  });
+}
+
+function sumArr(arr){ return arr.reduce((s,i)=>s+ (i.amount||0), 0); }
+
+function updateBuget(){
+  const income = state.income;
+  const rate = state.rate;
+  const fixedTotal = sumArr(state.fixed);
+  const varTotal = sumArr(state.variable);
+  const remaining = income - rate - fixedTotal - varTotal;
+
+  document.getElementById('fixedTotal').textContent = fmtLei(fixedTotal);
+  document.getElementById('varTotal').textContent = fmtLei(varTotal);
+
+  const balEl = document.getElementById('balanceValue');
+  const lineEl = document.getElementById('balanceLine');
+  balEl.textContent = fmtLei(remaining);
+  lineEl.classList.toggle('negative', remaining < 0);
+  lineEl.classList.toggle('positive', remaining >= 0);
+
+  const total = Math.max(income, rate + fixedTotal + varTotal + Math.max(remaining,0));
+  const bar = document.getElementById('allocBar');
+  const segs = [
+    {cls:'seg-rata', val: rate},
+    {cls:'seg-fix', val: fixedTotal},
+    {cls:'seg-var', val: varTotal},
+    {cls:'seg-inv', val: Math.max(remaining,0)},
+  ];
+  bar.innerHTML = segs.map(s=>{
+    const pct = total>0 ? (s.val/total*100) : 0;
+    return `<div class="${s.cls}" style="width:${pct}%"></div>`;
+  }).join('');
+
+  const bdBase = income>0 ? income : 1;
+  const bdLabels = [
+    {cls:'seg-rata', name:'Rată', val: rate},
+    {cls:'seg-fix', name:'Cheltuieli fixe', val: fixedTotal},
+    {cls:'seg-var', name:'Cheltuieli variabile', val: varTotal},
+    {cls:'seg-inv', name:'Rămas pt. investiții', val: remaining},
+  ];
+  const bdEl = document.getElementById('breakdown');
+  bdEl.innerHTML = bdLabels.map(b=>{
+    const pct = (b.val/bdBase*100);
+    const pctStr = (pct<0? '−':'') + Math.abs(pct).toFixed(1) + '%';
+    return `<div class="bd-row">
+      <span class="dot ${b.cls}"></span>
+      <span class="bd-name">${b.name}</span>
+      <span class="bd-amount">${fmtLei(b.val)}</span>
+      <span class="bd-pct">${pctStr}</span>
+    </div>`;
+  }).join('');
+
+  const dti = income>0 ? (rate/income*100) : 0;
+  const badge = document.getElementById('dtiBadge');
+  badge.textContent = dti.toFixed(1) + '%';
+  badge.classList.remove('dti-ok','dti-warn','dti-bad');
+  if(dti <= 35) badge.classList.add('dti-ok');
+  else if(dti <= 45) badge.classList.add('dti-warn');
+  else badge.classList.add('dti-bad');
+}
+
+const incomeInput = document.getElementById('income');
+const incomeSlider = document.getElementById('incomeSlider');
+const rateInput = document.getElementById('rate');
+const rateSlider = document.getElementById('rateSlider');
+
+function syncIncome(v){
+  state.income = parseFloat(v) || 0;
+  incomeInput.value = state.income;
+  incomeSlider.value = Math.min(Math.max(state.income, incomeSlider.min), incomeSlider.max);
+  updateBuget();
+}
+function syncRate(v){
+  state.rate = parseFloat(v) || 0;
+  rateInput.value = state.rate;
+  rateSlider.value = Math.min(Math.max(state.rate, rateSlider.min), rateSlider.max);
+  updateBuget();
+}
+
+incomeInput.addEventListener('input', e=>syncIncome(e.target.value));
+incomeSlider.addEventListener('input', e=>syncIncome(e.target.value));
+rateInput.addEventListener('input', e=>syncRate(e.target.value));
+rateSlider.addEventListener('input', e=>syncRate(e.target.value));
+
+document.getElementById('addFixed').addEventListener('click', ()=>{
+  state.fixed.push({name:"Cheltuială nouă", amount:0});
+  renderList('fixedList', state.fixed, updateBuget);
+  updateBuget();
+});
+document.getElementById('addVar').addEventListener('click', ()=>{
+  state.variable.push({name:"Cheltuială nouă", amount:0});
+  renderList('varList', state.variable, updateBuget);
+  updateBuget();
+});
+
+document.querySelectorAll('#tab-buget .preset-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const p = presets[btn.dataset.preset];
+    syncIncome(p.income);
+    syncRate(p.rate);
+  });
+});
+
+renderList('fixedList', state.fixed, updateBuget);
+renderList('varList', state.variable, updateBuget);
+updateBuget();
+</script>
+</body>
+</html>
