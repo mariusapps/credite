@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Credit & Buget">
+<title>Credit &amp; Buget</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --text-2:#6e6e73;
+    --border:rgba(0,0,0,0.07); --field-bg:#f0f0f2;
+    --blue:#0071e3; --blue-soft:rgba(0,113,227,0.12);
+    --green:#2fb457; --green-soft:rgba(47,180,87,0.14);
+    --red:#ff3b30; --red-soft:rgba(255,59,48,0.12); --orange:#ff9500;
+    --shadow:0 1px 2px rgba(0,0,0,0.04),0 1px 12px rgba(0,0,0,0.04);
+    --nav-h:64px;
+    --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#000000; --card:#1c1c1e; --text:#f5f5f7; --text-2:#98989d;
+      --border:rgba(255,255,255,0.09); --field-bg:#2c2c2e;
+      --blue:#0a84ff; --blue-soft:rgba(10,132,255,0.2);
+      --green:#32d74b; --green-soft:rgba(50,215,75,0.18);
+      --red:#ff453a; --red-soft:rgba(255,69,58,0.18); --orange:#ff9f0a;
+      --shadow:none;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Inter','Roboto','Segoe UI',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:contain;
+    padding-bottom:calc(var(--nav-h) + var(--sab) + 20px);
+  }
+  button{font-family:inherit;}
+
+  .appbar{
+    position:sticky;top:0;z-index:50;
+    padding:calc(var(--sat) + 12px) 18px 12px;
+    background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border-bottom:1px solid var(--border);
+  }
+  .appbar h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-0.02em;}
+  .appbar .eyebrow{font-size:11.5px;font-weight:600;margin:0 0 1px;}
+  .tab-credit .eyebrow{color:var(--blue);} .tab-buget .eyebrow{color:var(--green);}
+  #installBtn{
+    display:none;border:none;background:var(--blue);color:#fff;font-weight:600;font-size:13px;
+    padding:8px 14px;border-radius:18px;
+  }
+  #offlineDot{font-size:11.5px;color:var(--orange);font-weight:600;display:none;}
+
+  .panel{display:none;padding:16px 16px 0;max-width:640px;margin:0 auto;}
+  .panel.active{display:block;}
+
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;}
+  .pad{padding:18px 18px;}
+
+  .hero{text-align:center;padding:24px 18px 20px;}
+  .hero .label{font-size:13px;color:var(--text-2);font-weight:500;margin:0 0 6px;}
+  .hero .figure{font-size:clamp(32px,10vw,44px);font-weight:800;letter-spacing:-0.02em;line-height:1.05;margin:0;font-variant-numeric:tabular-nums;}
+  .hero .figure.blue{color:var(--blue);}
+  .hero .sub{font-size:12.5px;color:var(--text-2);margin:8px 0 0;line-height:1.4;}
+  .mini-row{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);margin-top:18px;padding-top:14px;gap:10px;text-align:center;}
+  .mini-row .label{font-size:11.5px;color:var(--text-2);margin:0 0 4px;font-weight:500;}
+  .mini-row .figure{font-size:17px;font-weight:700;margin:0;font-variant-numeric:tabular-nums;}
+  .red{color:var(--red);} .blue{color:var(--blue);} .green{color:var(--green);}
+
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .stat{background:var(--card);border-radius:16px;padding:14px 15px;box-shadow:var(--shadow);}
+  .stat .label{font-size:11.5px;color:var(--text-2);margin:0 0 6px;font-weight:500;}
+  .stat .figure{font-size:16.5px;font-weight:700;margin:0;font-variant-numeric:tabular-nums;letter-spacing:-0.01em;word-break:break-word;}
+  .stat .note{font-size:11px;color:var(--text-2);margin:4px 0 0;line-height:1.35;}
+
+  .timeline-head,.ledger-title{font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:12px;}
+  .bar-track{height:14px;border-radius:7px;overflow:hidden;background:var(--field-bg);display:flex;}
+  .bar-fixed{background:var(--blue);height:100%;} .bar-var{background:var(--orange);height:100%;}
+  .bar-labels{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--text-2);margin-top:10px;}
+  .bar-labels b{color:var(--text);}
+  .note-block{font-size:12px;color:var(--text-2);line-height:1.55;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+  .note-block strong{color:var(--text);}
+
+  details.group{background:var(--card);border-radius:18px;box-shadow:var(--shadow);margin-bottom:12px;}
+  details.group>summary{
+    list-style:none;cursor:pointer;padding:16px 18px;font-size:15px;font-weight:600;
+    display:flex;justify-content:space-between;align-items:center;min-height:52px;
+  }
+  details.group>summary::-webkit-details-marker{display:none;}
+  details.group>summary::after{content:"›";font-size:22px;color:var(--text-2);transform:rotate(90deg);transition:transform .2s;}
+  details.group[open]>summary::after{transform:rotate(-90deg);}
+  .group-body{padding:0 18px 18px;}
+
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:13.5px;font-weight:500;margin-bottom:6px;}
+  .input-wrap{position:relative;}
+  .input-wrap input{
+    width:100%;font-family:inherit;font-size:17px;font-weight:500;color:var(--text);
+    padding:12px 48px 12px 14px;border:1px solid transparent;background:var(--field-bg);border-radius:12px;
+    -webkit-appearance:none;appearance:none;min-height:48px;
+  }
+  .input-wrap input:focus{outline:none;background:var(--card);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft);}
+  .input-wrap .unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text-2);pointer-events:none;font-weight:500;}
+  .field .note{font-size:11.5px;color:var(--text-2);margin-top:5px;line-height:1.4;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .chip{font-size:13px;font-weight:500;padding:8px 14px;border-radius:18px;background:var(--field-bg);border:none;color:var(--text-2);min-height:36px;}
+  .chip.active{background:var(--blue);color:#fff;}
+  .tab-buget-chip.active{background:var(--green);}
+
+  /* Buget */
+  .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;}
+  .row .t{font-size:14.5px;font-weight:500;} .row .sub{display:block;font-size:11.5px;color:var(--text-2);font-weight:400;margin-top:2px;}
+  .num-input{
+    font-family:inherit;font-weight:600;font-size:17px;color:var(--text);background:var(--field-bg);
+    border:1px solid transparent;border-radius:12px;padding:10px 12px;width:116px;text-align:right;min-height:46px;
+  }
+  .num-input:focus{outline:none;background:var(--card);border-color:var(--green);box-shadow:0 0 0 3px var(--green-soft);}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--field-bg);margin:14px 0 10px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,0.35);border:none;}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,0.35);border:none;}
+  .link-btn{border:none;background:var(--green-soft);color:var(--green);font-weight:600;font-size:12.5px;border-radius:14px;padding:8px 13px;margin-top:4px;min-height:34px;}
+
+  .item-row{display:grid;grid-template-columns:1fr 92px 34px;gap:8px;align-items:center;padding:5px 0;}
+  .item-row input[type=text]{background:transparent;border:none;color:var(--text);font-size:14.5px;padding:8px 0;font-family:inherit;min-width:0;}
+  .item-row input[type=text]:focus{outline:none;}
+  .item-row input[type=number]{font-family:inherit;font-size:15px;background:var(--field-bg);border:1px solid transparent;border-radius:10px;color:var(--text);padding:9px 8px;width:100%;text-align:right;min-height:42px;}
+  .item-row input[type=number]:focus{outline:none;border-color:var(--green);}
+  .del-btn{background:none;border:none;color:var(--text-2);font-size:22px;line-height:1;padding:0;min-height:42px;}
+  .add-btn{font-size:13.5px;font-weight:600;background:var(--field-bg);border:none;color:var(--green);border-radius:12px;padding:12px;margin-top:8px;width:100%;min-height:44px;}
+  .cat-total{display:flex;justify-content:space-between;font-size:13.5px;color:var(--text-2);padding-top:12px;margin-top:10px;border-top:1px solid var(--border);}
+  .cat-total b{color:var(--text);font-variant-numeric:tabular-nums;}
+
+  .balance-hero{text-align:center;padding:22px 18px 6px;}
+  .balance-hero .label{font-size:13px;color:var(--text-2);margin:0 0 6px;font-weight:500;}
+  .balance-hero .val{font-size:clamp(32px,10vw,42px);font-weight:800;letter-spacing:-0.02em;margin:0;font-variant-numeric:tabular-nums;}
+  .balance-hero.negative .val{color:var(--red);} .balance-hero.positive .val{color:var(--green);}
+  .bar{height:12px;border-radius:6px;overflow:hidden;display:flex;margin:16px 0 12px;background:var(--field-bg);}
+  .bar div{height:100%;}
+  .seg-rata{background:#8e8e93;} .seg-fix{background:var(--orange);} .seg-var{background:#af52de;} .seg-inv{background:var(--green);}
+  .bd-row{display:grid;grid-template-columns:12px 1fr auto auto;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .bd-row:last-child{border-bottom:none;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .bd-amount{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
+  .bd-pct{font-size:12px;color:var(--text-2);text-align:right;min-width:44px;font-variant-numeric:tabular-nums;}
+  .dti{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--text-2);}
+  .dti-badge{font-weight:700;font-size:13px;padding:5px 12px;border-radius:20px;}
+  .dti-ok{background:var(--green-soft);color:var(--green);}
+  .dti-warn{background:rgba(255,149,0,0.16);color:var(--orange);}
+  .dti-bad{background:var(--red-soft);color:var(--red);}
+
+  .footer{font-size:11.5px;color:var(--text-2);text-align:center;padding:10px 20px 20px;}
+  .reset{border:none;background:none;color:var(--text-2);font-size:12px;text-decoration:underline;margin-top:6px;}
+
+  nav.bottom{
+    position:fixed;left:0;right:0;bottom:0;z-index:60;
+    height:calc(var(--nav-h) + var(--sab));padding-bottom:var(--sab);
+    background:color-mix(in srgb,var(--card) 90%,transparent);
+    backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
+    border-top:1px solid var(--border);display:flex;
+  }
+  nav.bottom button{
+    flex:1;border:none;background:none;color:var(--text-2);font-size:12px;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  }
+  nav.bottom button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  nav.bottom button.active[data-tab=credit]{color:var(--blue);}
+  nav.bottom button.active[data-tab=buget]{color:var(--green);}
+</style>
+</head>
+<body class="tab-credit">
+
+<div class="appbar">
+  <div>
+    <p class="eyebrow" id="eyebrow">Simulator ipotecar</p>
+    <h1 id="title">Fișă de credit</h1>
+  </div>
+  <span id="offlineDot">● offline</span>
+  <button id="installBtn" type="button">Instalează</button>
+</div>
+
+<!-- ============ CREDIT ============ -->
+<section id="tab-credit" class="panel active">
+
+  <div class="card hero">
+    <p class="label">Rată în perioada fixă</p>
+    <p class="figure blue" id="s_ratafix">— RON</p>
+    <p class="sub" id="r_ratafix_note">credit + asigurări</p>
+    <div class="mini-row">
+      <div><p class="label">După perioada fixă</p><p class="figure red" id="s_ratavar">— RON</p></div>
+      <div><p class="label">Fonduri proprii</p><p class="figure" id="s_avans">— €</p></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><p class="label">Suma creditată</p><p class="figure blue" id="r_credit">—</p><p class="note" id="r_credit_ron"></p></div>
+    <div class="stat"><p class="label">Venit minim (est.)</p><p class="figure" id="r_venit">—</p><p class="note">40% grad de îndatorare</p></div>
+    <div class="stat"><p class="label">Fonduri proprii (RON)</p><p class="figure" id="r_avans_ron">—</p><p class="note" id="r_avans_breakdown"></p></div>
+    <div class="stat"><p class="label">Rată după fix</p><p class="figure red" id="r_ratavar">—</p><p class="note" id="r_ratavar_note"></p></div>
+  </div>
+
+  <div class="card pad">
+    <div class="timeline-head">Cronologie rate</div>
+    <div class="bar-track"><div class="bar-fixed" id="bar_fix"></div><div class="bar-var" id="bar_var"></div></div>
+    <div class="bar-labels"><span id="lbl_fix_rate"></span><span id="lbl_var_rate"></span></div>
+    <div class="note-block">
+      <strong>Total rambursat + comisioane:</strong> <span id="r_costtotal">—</span><br>
+      Rata după perioada fixă e o <strong>estimare</strong> — dobânda standard e variabilă (IRCC + marjă).
+    </div>
+  </div>
+
+  <div id="creditFields"></div>
+
+  <div class="footer">valorile sunt estimări orientative, nu constituie consultanță financiară<br>
+    <button class="reset" id="resetCredit" type="button">Resetează parametrii creditului</button></div>
+</section>
+
+<!-- ============ BUGET ============ -->
+<section id="tab-buget" class="panel">
+
+  <div class="card">
+    <div class="balance-hero positive" id="balanceLine">
+      <p class="label">Disponibil pentru investiții / economii</p>
+      <p class="val" id="balanceValue">0 lei</p>
+    </div>
+    <div class="pad">
+      <div class="bar" id="allocBar"></div>
+      <div id="breakdown"></div>
+      <div class="dti"><span>Grad de îndatorare (rată / venit)</span><span class="dti-badge" id="dtiBadge">0%</span></div>
+    </div>
+  </div>
+
+  <div class="card pad">
+    <div class="ledger-title">Venit &amp; credit</div>
+    <div class="row">
+      <div><span class="t">Venit net lunar</span><span class="sub">salariu, trading sau ambele</span></div>
+      <input type="number" inputmode="decimal" class="num-input" id="income" step="100">
+    </div>
+    <input type="range" id="incomeSlider" min="1500" max="20000" step="50">
+    <div class="row">
+      <div><span class="t">Rată lunară</span><span class="sub">ipotecar, chirie sau alt credit</span></div>
+      <input type="number" inputmode="decimal" class="num-input" id="rate" step="50">
+    </div>
+    <input type="range" id="rateSlider" min="0" max="8000" step="50">
+    <button class="link-btn" id="pullRate" type="button">↻ Preia rata din tab-ul Credit</button>
+    <div class="chips">
+      <button class="chip tab-buget-chip" data-preset="default" type="button">7000 / 2700</button>
+      <button class="chip tab-buget-chip" data-preset="tight" type="button">Venit redus</button>
+      <button class="chip tab-buget-chip" data-preset="growth" type="button">Venit mare</button>
+      <button class="chip tab-buget-chip" data-preset="biggerloan" type="button">Credit mai mare</button>
+    </div>
+  </div>
+
+  <div class="card pad">
+    <div class="ledger-title">Cheltuieli fixe</div>
+    <div id="fixedList"></div>
+    <button class="add-btn" id="addFixed" type="button">+ adaugă cheltuială fixă</button>
+    <div class="cat-total"><span>Total fixe</span><b id="fixedTotal">0 lei</b></div>
+  </div>
+
+  <div class="card pad">
+    <div class="ledger-title">Cheltuieli variabile</div>
+    <div id="varList"></div>
+    <button class="add-btn" id="addVar" type="button">+ adaugă cheltuială variabilă</button>
+    <div class="cat-total"><span>Total variabile</span><b id="varTotal">0 lei</b></div>
+  </div>
+
+  <div class="footer">valorile sunt estimări orientative, nu constituie consultanță financiară<br>
+    <button class="reset" id="resetBuget" type="button">Resetează bugetul</button></div>
+</section>
+
+<nav class="bottom">
+  <button class="active" data-tab="credit" type="button">
+    <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Credit
+  </button>
+  <button data-tab="buget" type="button">
+    <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><path d="M16 15h2"/></svg>Buget
+  </button>
+</nav>
+
+<script>
+/* ---------- utilitare ---------- */
+const $ = id => document.getElementById(id);
+const fmt = (n, dec=0) => Number(n).toLocaleString('ro-RO',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+const fmtLei = n => Math.round(n).toLocaleString('ro-RO') + ' lei';
+const STORE_KEY = 'credit-buget-v1';
+
+function annuityPayment(P, r, n){ return r === 0 ? P/n : P*r/(1-Math.pow(1+r,-n)); }
+function remainingBalance(P, r, M, k){
+  let bal = P;
+  for(let i=0;i<k;i++){ bal -= (M - bal*r); }
+  return bal;
+}
+
+/* ---------- stare + salvare locală ---------- */
+const CREDIT_DEFAULTS = {price:95000,fx:5.3,avans:15,ani:25,anifix:2,dfix:4.69,dstd:7.83,
+  comanaliza:900,comunic:50,asig:0.03,asigim:130,notar:2,agentie:2};
+const BUGET_DEFAULTS = () => ({
+  income:7000, rate:2700,
+  fixed:[{name:'Întreținere asociație',amount:200},{name:'Curent',amount:200},{name:'Gaz / încălzire',amount:220},
+         {name:'Internet + telefon',amount:120},{name:'Asigurare locuință',amount:30}],
+  variable:[{name:'Mâncare',amount:1350},{name:'Transport',amount:220},{name:'Personal / farmacie',amount:350},{name:'Ieșiri / divertisment',amount:250}]
+});
+let vals = {...CREDIT_DEFAULTS};
+let state = BUGET_DEFAULTS();
+let lastRataFix = 0;
+
+try{
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+  if(saved){
+    if(saved.credit) vals = {...vals, ...saved.credit};
+    if(saved.budget) state = {...state, ...saved.budget};
+  }
+}catch(e){}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify({credit:vals, budget:state})); }catch(e){}
+}
+
+/* ---------- tab-uri ---------- */
+const TITLES = {credit:['Simulator ipotecar','Fișă de credit'], buget:['Simulator financiar','Bugetul tău']};
+function showTab(t){
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+t));
+  document.body.className = 'tab-'+t;
+  $('eyebrow').textContent = TITLES[t][0]; $('title').textContent = TITLES[t][1];
+  window.scrollTo({top:0});
+  try{ localStorage.setItem(STORE_KEY+'-tab', t); }catch(e){}
+}
+document.querySelectorAll('nav.bottom button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+
+/* ---------- CREDIT: câmpuri ---------- */
+const GROUPS = [
+  {title:'Imobil', open:true, fields:[
+    {id:'price', label:'Preț apartament', unit:'€', step:500, presets:[90000,95000,100000,105000]},
+    {id:'fx', label:'Curs EUR/RON', unit:'RON', step:0.01},
+    {id:'avans', label:'Avans minim', unit:'%', step:1}]},
+  {title:'Credit', open:false, fields:[
+    {id:'ani', label:'Perioadă credit', unit:'ani', step:1},
+    {id:'anifix', label:'Perioadă dobândă fixă', unit:'ani', step:1},
+    {id:'dfix', label:'Dobândă fixă', unit:'%', step:0.01},
+    {id:'dstd', label:'Dobândă standard (după fix)', unit:'%', step:0.01, note:'formulă bancă: IRCC + marjă 2,25%'}]},
+  {title:'Costuri și asigurări', open:false, fields:[
+    {id:'comanaliza', label:'Comision de analiză', unit:'RON', step:10},
+    {id:'comunic', label:'Comision unic', unit:'€', step:5},
+    {id:'asig', label:'Asigurare viață (lunar, din sold)', unit:'%', step:0.01},
+    {id:'asigim', label:'Asigurare imobil (anuală)', unit:'RON', step:10}]},
+  {title:'Costuri tranzacție', open:false, fields:[
+    {id:'notar', label:'Costuri notariale', unit:'%', step:0.1, note:'% din prețul apartamentului'},
+    {id:'agentie', label:'Comision agenție imobiliară', unit:'%', step:0.1, note:'% din preț — completează dacă tu plătești comisionul'}]}
+];
+
+function buildCreditFields(){
+  const root = $('creditFields');
+  root.innerHTML = '';
+  GROUPS.forEach(g=>{
+    const d = document.createElement('details');
+    d.className = 'group'; if(g.open) d.open = true;
+    const s = document.createElement('summary'); s.textContent = g.title; d.appendChild(s);
+    const body = document.createElement('div'); body.className = 'group-body';
+    g.fields.forEach(f=>{
+      const wrap = document.createElement('div'); wrap.className = 'field';
+      const lab = document.createElement('label'); lab.htmlFor = 'f_'+f.id; lab.textContent = f.label;
+      const iw = document.createElement('div'); iw.className = 'input-wrap';
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.inputMode = 'decimal'; inp.id = 'f_'+f.id; inp.step = f.step; inp.value = vals[f.id];
+      inp.addEventListener('input', ()=>{ vals[f.id] = parseFloat(inp.value); calculate(); syncChips(); });
+      const u = document.createElement('span'); u.className = 'unit'; u.textContent = f.unit;
+      iw.append(inp,u); wrap.append(lab,iw);
+      if(f.note){ const n = document.createElement('div'); n.className='note'; n.textContent=f.note; wrap.appendChild(n); }
+      if(f.presets){
+        const row = document.createElement('div'); row.className = 'chips';
+        f.presets.forEach(p=>{
+          const c = document.createElement('button'); c.type='button'; c.className='chip'; c.dataset.price=p;
+          c.textContent = fmt(p)+' €';
+          c.addEventListener('click',()=>{ vals.price = p; inp.value = p; calculate(); syncChips(); });
+          row.appendChild(c);
+        });
+        wrap.appendChild(row);
+      }
+      body.appendChild(wrap);
+    });
+    d.appendChild(body); root.appendChild(d);
+  });
+  syncChips();
+}
+function syncChips(){
+  document.querySelectorAll('#creditFields .chip').forEach(c=>c.classList.toggle('active', Number(c.dataset.price)===Math.round(vals.price||0)));
+}
+
+/* ---------- CREDIT: calcul ---------- */
+function num(id, fallback=0){ const v = parseFloat(vals[id]); return isNaN(v) ? fallback : v; }
+function calculate(){
+  const priceEUR = num('price'), fx = num('fx',1) || 1, avansPct = num('avans');
+  const ani = parseInt(vals.ani) || 25;
+  const aniFix = Math.min(parseInt(vals.anifix) || 2, ani);
+  const dFix = num('dfix')/100, dStd = num('dstd')/100;
+  const comAnaliza = num('comanaliza'), comUnicEUR = num('comunic');
+  const asigPct = num('asig')/100, asigImobilAn = num('asigim');
+  const notarPct = num('notar'), agentiePct = num('agentie');
+
+  const avansEUR = priceEUR*avansPct/100;
+  const creditEUR = priceEUR - avansEUR;
+  const creditRON = creditEUR*fx;
+  const notarEUR = priceEUR*notarPct/100, agentieEUR = priceEUR*agentiePct/100;
+  const proprii = avansEUR + notarEUR + agentieEUR;
+
+  $('s_avans').textContent = fmt(proprii)+' €';
+  $('r_avans_ron').textContent = fmt(proprii*fx)+' RON';
+  $('r_avans_breakdown').textContent = 'avans '+fmt(avansEUR)+' € + notar '+fmt(notarEUR)+' € + agenție '+fmt(agentieEUR)+' €';
+  $('r_credit').textContent = fmt(creditEUR)+' €';
+  $('r_credit_ron').textContent = fmt(creditRON)+' RON';
+
+  const nTotal = ani*12, kFix = aniFix*12, nRest = Math.max(nTotal-kFix,1);
+  const rF = dFix/12, rS = dStd/12;
+  const Mfix = annuityPayment(creditRON, rF, nTotal);
+  const bal = kFix>=nTotal ? 0 : remainingBalance(creditRON, rF, Mfix, kFix);
+  const Mvar = kFix>=nTotal ? 0 : annuityPayment(bal, rS, nRest);
+  const insFix = creditRON*asigPct, insVar = bal*asigPct, asigImLunar = asigImobilAn/12;
+  const rataFix = Mfix + insFix + asigImLunar;
+  const rataVar = kFix>=nTotal ? 0 : Mvar + insVar + asigImLunar;
+  lastRataFix = rataFix;
+
+  $('s_ratafix').textContent = fmt(rataFix)+' RON';
+  $('r_ratafix_note').textContent = 'credit '+fmt(Mfix)+' + asigurări '+fmt(insFix+asigImLunar)+' RON';
+  if(kFix>=nTotal){
+    $('s_ratavar').textContent = '—'; $('r_ratavar').textContent = '—'; $('r_ratavar_note').textContent = 'fixul acoperă tot creditul';
+  }else{
+    $('s_ratavar').textContent = fmt(rataVar)+' RON';
+    $('r_ratavar').textContent = fmt(rataVar)+' RON';
+    $('r_ratavar_note').textContent = 'sold '+fmt(bal)+' RON după '+aniFix+' ani';
+  }
+  $('r_venit').textContent = fmt(rataFix/0.40)+' RON';
+
+  let total = 0, b = creditRON;
+  for(let i=0;i<kFix && i<nTotal;i++){ total += Mfix; b -= (Mfix - b*rF); }
+  for(let i=0;i<nRest && (kFix+i)<nTotal;i++){ total += Mvar; b -= (Mvar - b*rS); }
+  $('r_costtotal').textContent = fmt(total + comAnaliza + comUnicEUR*fx)+' RON (credit de '+fmt(creditRON)+' RON)';
+
+  const fixShare = Math.min(kFix,nTotal)/nTotal*100;
+  $('bar_fix').style.width = fixShare+'%'; $('bar_var').style.width = (100-fixShare)+'%';
+  $('lbl_fix_rate').innerHTML = '<b>Fix</b> · '+fmt(dFix*100,2)+'% · '+fmt(rataFix)+' RON/lună';
+  $('lbl_var_rate').innerHTML = kFix>=nTotal ? '' : '<b>Variabil</b> · '+fmt(dStd*100,2)+'% · '+fmt(rataVar)+' RON/lună (est.)';
+  save();
+}
+
+/* ---------- BUGET ---------- */
+const presets = {default:{income:7000,rate:2700}, tight:{income:5500,rate:2700}, growth:{income:9000,rate:2700}, biggerloan:{income:7000,rate:3500}};
+const sumArr = a => a.reduce((s,i)=>s+(i.amount||0),0);
+
+function renderList(containerId, arr){
+  const el = $(containerId); el.innerHTML = '';
+  arr.forEach((item, idx)=>{
+    const row = document.createElement('div'); row.className = 'item-row';
+    const name = document.createElement('input'); name.type='text'; name.value = item.name; name.setAttribute('aria-label','Denumire');
+    name.addEventListener('input',()=>{ item.name = name.value; save(); });
+    const amt = document.createElement('input'); amt.type='number'; amt.inputMode='decimal'; amt.step=10; amt.value = item.amount; amt.setAttribute('aria-label','Sumă');
+    amt.addEventListener('input',()=>{ item.amount = parseFloat(amt.value)||0; updateBuget(); });
+    const del = document.createElement('button'); del.type='button'; del.className='del-btn'; del.textContent='×'; del.setAttribute('aria-label','Șterge');
+    del.addEventListener('click',()=>{ arr.splice(idx,1); renderList(containerId,arr); updateBuget(); });
+    row.append(name,amt,del); el.appendChild(row);
+  });
+}
+
+function updateBuget(){
+  const {income, rate} = state;
+  const fixedTotal = sumArr(state.fixed), varTotal = sumArr(state.variable);
+  const remaining = income - rate - fixedTotal - varTotal;
+  $('fixedTotal').textContent = fmtLei(fixedTotal);
+  $('varTotal').textContent = fmtLei(varTotal);
+  $('balanceValue').textContent = fmtLei(remaining);
+  const bl = $('balanceLine'); bl.classList.toggle('negative', remaining<0); bl.classList.toggle('positive', remaining>=0);
+
+  const tot = Math.max(income, rate+fixedTotal+varTotal+Math.max(remaining,0));
+  const segs = [['seg-rata',rate],['seg-fix',fixedTotal],['seg-var',varTotal],['seg-inv',Math.max(remaining,0)]];
+  $('allocBar').innerHTML = segs.map(([c,v])=>`<div class="${c}" style="width:${tot>0?v/tot*100:0}%"></div>`).join('');
+
+  const base = income>0 ? income : 1;
+  const labels = [['seg-rata','Rată',rate],['seg-fix','Cheltuieli fixe',fixedTotal],['seg-var','Cheltuieli variabile',varTotal],['seg-inv','Rămas pt. investiții',remaining]];
+  $('breakdown').innerHTML = labels.map(([c,n,v])=>{
+    const p = v/base*100;
+    return `<div class="bd-row"><span class="dot ${c}"></span><span>${n}</span><span class="bd-amount">${fmtLei(v)}</span><span class="bd-pct">${(p<0?'−':'')+Math.abs(p).toFixed(1)}%</span></div>`;
+  }).join('');
+
+  const dti = income>0 ? rate/income*100 : 0;
+  const badge = $('dtiBadge'); badge.textContent = dti.toFixed(1)+'%';
+  badge.classList.remove('dti-ok','dti-warn','dti-bad');
+  badge.classList.add(dti<=35 ? 'dti-ok' : dti<=45 ? 'dti-warn' : 'dti-bad');
+  save();
+}
+function syncIncome(v, fromInput){
+  state.income = parseFloat(v)||0;
+  if(!fromInput) $('income').value = state.income;
+  $('incomeSlider').value = Math.min(Math.max(state.income,1500),20000);
+  updateBuget();
+}
+function syncRate(v, fromInput){
+  state.rate = parseFloat(v)||0;
+  if(!fromInput) $('rate').value = state.rate;
+  $('rateSlider').value = Math.min(Math.max(state.rate,0),8000);
+  updateBuget();
+}
+$('income').addEventListener('input', e=>syncIncome(e.target.value,true));
+$('incomeSlider').addEventListener('input', e=>syncIncome(e.target.value,false));
+$('rate').addEventListener('input', e=>syncRate(e.target.value,true));
+$('rateSlider').addEventListener('input', e=>syncRate(e.target.value,false));
+$('addFixed').addEventListener('click',()=>{ state.fixed.push({name:'Cheltuială nouă',amount:0}); renderList('fixedList',state.fixed); updateBuget(); });
+$('addVar').addEventListener('click',()=>{ state.variable.push({name:'Cheltuială nouă',amount:0}); renderList('varList',state.variable); updateBuget(); });
+$('pullRate').addEventListener('click',()=>syncRate(Math.round(lastRataFix),false));
+document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{
+  const p = presets[b.dataset.preset]; syncIncome(p.income); syncRate(p.rate);
+  document.querySelectorAll('[data-preset]').forEach(x=>x.classList.toggle('active',x===b));
+}));
+$('resetCredit').addEventListener('click',()=>{
+  if(!confirm('Resetezi parametrii creditului la valorile implicite?')) return;
+  vals = {...CREDIT_DEFAULTS}; buildCreditFields(); calculate();
+});
+$('resetBuget').addEventListener('click',()=>{
+  if(!confirm('Resetezi bugetul la valorile implicite?')) return;
+  state = BUGET_DEFAULTS(); initBuget();
+});
+
+function initBuget(){
+  $('income').value = state.income; $('rate').value = state.rate;
+  $('incomeSlider').value = Math.min(Math.max(state.income,1500),20000);
+  $('rateSlider').value = Math.min(Math.max(state.rate,0),8000);
+  renderList('fixedList',state.fixed); renderList('varList',state.variable);
+  updateBuget();
+}
+
+/* ---------- pornire ---------- */
+buildCreditFields(); calculate(); initBuget();
+try{ const t = localStorage.getItem(STORE_KEY+'-tab'); if(t==='buget') showTab('buget'); }catch(e){}
+
+/* ---------- PWA: instalare + offline ---------- */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt = e; $('installBtn').style.display = 'inline-block';
+});
+$('installBtn').addEventListener('click', async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
+  deferredPrompt = null; $('installBtn').style.display = 'none';
+});
+window.addEventListener('appinstalled', ()=>{ $('installBtn').style.display = 'none'; });
+function netStatus(){ $('offlineDot').style.display = navigator.onLine ? 'none' : 'inline'; }
+window.addEventListener('online', netStatus); window.addEventListener('offline', netStatus); netStatus();
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
